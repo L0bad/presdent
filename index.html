@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CyberGuard — проверка ссылок и сообщений на мошенничество</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF2F4;--card:#fff;--ink:#0D2433;--mut:#5B6F7C;--line:#D3DDE3;--acc:#0D2433;--onacc:#fff;--ok:#1B8A57;--warn:#C98200;--bad:#D3263D;--okbg:#E3F5EC;--warnbg:#FFF2D6;--badbg:#FCE6E9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1620;--card:#12232F;--ink:#E6EEF2;--mut:#8EA3B0;--line:#243846;--acc:#F2B632;--onacc:#0A1620;--okbg:#0F3324;--warnbg:#3A2C08;--badbg:#3E1219;--ok:#4FD08D;--warn:#F2B632;--bad:#FF6679}}
+:root[data-theme="dark"]{--bg:#0A1620;--card:#12232F;--ink:#E6EEF2;--mut:#8EA3B0;--line:#243846;--acc:#F2B632;--onacc:#0A1620;--okbg:#0F3324;--warnbg:#3A2C08;--badbg:#3E1219;--ok:#4FD08D;--warn:#F2B632;--bad:#FF6679}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 Onest,system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 56px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+.logo{display:flex;align-items:center;gap:10px;font:800 20px Unbounded,sans-serif;letter-spacing:-.02em}
+.logo svg{width:34px;height:34px}
+#theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:99px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer}
+h1{font:800 clamp(28px,6vw,46px)/1.08 Unbounded,sans-serif;letter-spacing:-.03em;margin:0 0 12px}
+.lead{color:var(--mut);max-width:56ch;margin:0 0 28px;font-size:18px}
+nav{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:22px;overflow-x:auto}
+nav button{background:none;border:0;color:var(--mut);font:500 15px Onest;padding:10px 14px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--acc);font-weight:700}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+textarea,input[type=text]{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:13px 14px;font:inherit}
+textarea{min-height:130px;resize:vertical}
+.row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.btn{background:var(--acc);color:var(--onacc);border:0;border-radius:10px;padding:12px 22px;font:700 15px Onest;cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1.5px solid var(--line);font-weight:500}
+.res{margin-top:18px;display:none}
+.verdict{display:flex;gap:18px;align-items:center;border-radius:12px;padding:18px;border:2px solid}
+.verdict.ok{background:var(--okbg);border-color:var(--ok)}.verdict.warn{background:var(--warnbg);border-color:var(--warn)}.verdict.bad{background:var(--badbg);border-color:var(--bad)}
+.score{font:800 38px Unbounded;min-width:92px;text-align:center;line-height:1}
+.score small{display:block;font:500 12px Onest;color:var(--mut);margin-top:4px}
+.verdict h3{margin:0 0 2px;font:700 19px Onest}.verdict p{margin:0;color:var(--mut)}
+.meter{height:8px;border-radius:9px;background:var(--line);margin:14px 0;overflow:hidden}.meter i{display:block;height:100%;width:0;transition:width .5s}
+ul.sig{list-style:none;margin:0;padding:0}
+ul.sig li{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+ul.sig b{display:block}ul.sig span{color:var(--mut);font-size:14px}
+.tag{flex:none;font:700 12px Onest;border-radius:6px;padding:3px 8px;height:fit-content;margin-top:2px}
+.tag.h{background:var(--badbg);color:var(--bad)}.tag.m{background:var(--warnbg);color:var(--warn)}.tag.g{background:var(--okbg);color:var(--ok)}
+.note{font-size:13px;color:var(--mut);margin-top:12px}
+.ex{font-size:14px;color:var(--mut);margin-top:10px}.ex a{color:var(--ink);cursor:pointer;text-decoration:underline;margin-right:10px}
+.q h3{font:700 18px Onest;margin:0 0 6px}.q .msg{background:var(--bg);border-left:4px solid var(--acc);padding:12px 14px;border-radius:8px;margin:10px 0 14px;font-size:15px}
+.fb{margin-top:14px;padding:12px 14px;border-radius:10px;display:none}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border:0}.steps li:before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--acc);color:var(--onacc);font:700 14px Onest;display:grid;place-items:center}
+.steps b{display:block}.steps span{color:var(--mut)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:16px}
+.grid .card h4{margin:0 0 4px;font:700 16px Onest}.grid .card p{margin:0;color:var(--mut);font-size:14.5px}
+@media(max-width:520px){.verdict{flex-direction:column;align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="logo"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 5 9v10c0 9 6 15 15 18 9-3 15-9 15-18V9z" fill="var(--acc)"/><path d="m13 20 5 5 9-10" fill="none" stroke="var(--onacc)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>CyberGuard</div>
+ <button id="theme" type="button">Тема</button>
+</header>
+<h1>Не верь — МОШЕННИКИ</h1>
+<p class="lead">CyberGUARD проект создан от Кибербезопасности и мошенников, CyberGUARD - проверит подозрительные ссылки и смс</p>
+
+<nav role="tablist">
+ <button role="tab" aria-selected="true" data-t="link">Проверить ссылку</button>
+ <button role="tab" aria-selected="false" data-t="msg">Проверить сообщение</button>
+ <button role="tab" aria-selected="false" data-t="quiz">Тест</button>
+ <button role="tab" aria-selected="false" data-t="help">Меня обманули</button>
+</nav>
+
+<section id="link" class="panel on card">
+ <label for="u"><b>Адрес сайта или ссылка</b></label>
+ <input type="text" id="u" placeholder="например: http://kaspi-bonus.top/login" autocomplete="off" style="margin-top:8px">
+ <div class="row"><button class="btn" id="goL" type="button">Проверить</button><button class="btn ghost" id="clrL" type="button">Очистить</button></div>
+ <div class="ex">Примеры: <a data-ex="http://sberbank-secure-login.xyz/verify?id=123">фишинг</a><a data-ex="https://bit.ly/3xYz9">короткая ссылка</a><a data-ex="https://www.wikipedia.org">нормальный сайт</a></div>
+ <div class="res" id="rL"></div>
+ <p class="note">Проверка идёт прямо в браузере по признакам адреса. Ссылка никуда не отправляется и не открывается. Результат — оценка риска, а не гарантия.</p>
+</section>
+
+<section id="msg" class="panel card">
+ <label for="m"><b>Текст сообщения (SMS, мессенджер, письмо)</b></label>
+ <textarea id="m" placeholder="Вставь сюда текст, который тебе прислали" style="margin-top:8px"></textarea>
+ <div class="row"><button class="btn" id="goM" type="button">Проверить</button><button class="btn ghost" id="clrM" type="button">Очистить</button></div>
+ <div class="ex">Примеры: <a data-exm="Служба безопасности банка. С вашей карты пытаются списать 85 000. Срочно продиктуйте код из СМС, чтобы отменить операцию, и переведите деньги на безопасный счёт.">звонок «из банка»</a><a data-exm="Мам, я попал в беду, срочно переведи 20000 на этот номер, пожалуйста не говори папе. Потом всё объясню.">«родственник в беде»</a><a data-exm="Привет! Завтра в 15:00 встречаемся у входа, не забудь документы.">обычное</a></div>
+ <div class="res" id="rM"></div>
+</section>
+
+<section id="quiz" class="panel card"><div id="qbox" class="q"></div></section>
+
+<section id="help" class="panel">
+ <div class="card">
+  <h3 style="margin:0 0 6px;font:700 20px Onest">Если деньги или данные уже у мошенников</h3>
+  <p style="margin:0 0 8px;color:var(--mut)">Не вини себя — обманывают даже опытных. Важна скорость.</p>
+  <ol class="steps">
+   <li><div><b>Позвони в банк</b><span>По номеру на обратной стороне карты или из официального приложения. Попроси заблокировать карту и оспорить операцию.</span></div></li>
+   <li><div><b>Смени пароли</b><span>Сначала почта, затем банк, мессенджеры и соцсети. Включи двухфакторную защиту.</span></div></li>
+   <li><div><b>Проверь устройства и сессии</b><span>Выйди из всех чужих устройств в настройках аккаунта. Удали приложения, которые установил по просьбе незнакомца.</span></div></li>
+   <li><div><b>Сохрани доказательства</b><span>Скриншоты переписки, номера телефонов, чеки, реквизиты получателя.</span></div></li>
+   <li><div><b>Подай заявление в полицию</b><span>Принеси сохранённые доказательства. Предупреди близких: от твоего имени могут писать их.</span></div></li>
+  </ol>
+ </div>
+ <div class="grid">
+  <div class="card"><h4>Настоящий банк не просит</h4><p>Коды из СМС, CVV, пароли и «перевести на безопасный счёт». Никогда.</p></div>
+  <div class="card"><h4>Паузa — лучшая защита</h4><p>Мошенник торопит. Положи трубку, перезвони близким или в банк сам.</p></div>
+  <div class="card"><h4>Проверяй адрес</h4><p>Один лишний дефис или другая зона — и это уже не тот сайт.</p></div>
+ </div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+// tabs
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id===b.dataset.t));
+});
+// theme
+$('#theme').onclick=()=>{const r=document.documentElement;const d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function render(el,score,sigs,okText){
+ score=Math.min(100,score);
+ const lv=score>=55?'bad':score>=25?'warn':'ok';
+ const t={bad:['Высокий риск','Очень похоже на мошенничество. Не переходи, не отвечай, ничего не вводи.'],warn:['Есть подозрительные признаки','Будь осторожен: проверь отправителя другим способом.'],ok:['Явных признаков не найдено',okText]}[lv];
+ const col={bad:'var(--bad)',warn:'var(--warn)',ok:'var(--ok)'}[lv];
+ el.style.display='block';
+ el.innerHTML=`<div class="verdict ${lv}"><div class="score" style="color:${col}">${score}<small>риск из 100</small></div><div><h3>${t[0]}</h3><p>${t[1]}</p></div></div>
+ <div class="meter"><i style="background:${col}"></i></div>
+ <ul class="sig">${sigs.length?sigs.map(s=>`<li><span class="tag ${s[0]}">${{h:'Опасно',m:'Внимание',g:'Хорошо'}[s[0]]}</span><div><b>${s[1]}</b><span>${s[2]}</span></div></li>`).join(''):'<li><div><b>Подозрительных признаков нет</b><span>Но всё равно не вводи пароли и коды, если не уверен в источнике.</span></div></li>'}</ul>`;
+ requestAnimationFrame(()=>el.querySelector('.meter i').style.width=score+'%');
+}
+
+// ---- LINK ----
+const BRANDS=['kaspi','sber','tinkoff','gosuslugi','paypal','apple','google','binance','whatsapp','telegram','instagram','facebook','mbank','optima','demirbank','elsom','visa','mastercard','amazon','netflix','steam','vk','yandex','alfa','halyk','jusan'];
+const OFFICIAL={kaspi:['kaspi.kz'],sber:['sberbank.ru','sber.ru'],tinkoff:['tinkoff.ru'],gosuslugi:['gosuslugi.ru'],paypal:['paypal.com'],apple:['apple.com'],google:['google.com'],binance:['binance.com'],whatsapp:['whatsapp.com'],telegram:['telegram.org','t.me'],instagram:['instagram.com'],facebook:['facebook.com'],mbank:['mbank.kg'],optima:['optimabank.kg'],demirbank:['demirbank.kg'],elsom:['elsom.kg'],visa:['visa.com'],mastercard:['mastercard.com'],amazon:['amazon.com'],netflix:['netflix.com'],steam:['steampowered.com'],vk:['vk.com'],yandex:['yandex.ru','yandex.com'],alfa:['alfabank.ru'],halyk:['halykbank.kz'],jusan:['jusan.kz']};
+const BADTLD=['xyz','top','click','icu','tk','ml','cf','gq','buzz','live','site','online','rest','fit','cyou','monster','link','work','loan'];
+const SHORT=['bit.ly','tinyurl.com','t.co','cutt.ly','is.gd','goo.gl','clck.ru','rb.gy','shorturl.at','ow.ly'];
+const KW=/login|signin|verify|secure|update|confirm|bonus|gift|prize|win|claim|wallet|account|support|refund|free|payout|vyplat|podarok/i;
+function checkLink(raw){
+ raw=raw.trim();if(!raw)return null;
+ let s=0,g=[];const hasProto=/^[a-z]+:\/\//i.test(raw);
+ let u;try{u=new URL(hasProto?raw:'http://'+raw)}catch(e){return{s:0,g:[['m','Не удалось разобрать адрес','Проверь, что ссылка скопирована полностью.']],bad:true}}
+ const h=u.hostname.toLowerCase(),parts=h.split('.'),tld=parts[parts.length-1],dom=parts.slice(-2).join('.');
+ if(u.protocol==='https:')g.push(['g','Защищённое соединение (HTTPS)','Это хорошо, но HTTPS есть и у мошеннических сайтов — оно не доказывает честность.']);
+ else{s+=15;g.push(['m','Нет HTTPS','Данные передаются без шифрования. Современные настоящие сервисы почти всегда используют HTTPS.'])}
+ if(/^\d{1,3}(\.\d{1,3}){3}$/.test(h)){s+=35;g.push(['h','Вместо домена — IP-адрес','Настоящие сервисы не просят вводить данные на сайте с цифровым адресом.'])}
+ if(h.includes('xn--')||/[^\x00-\x7f]/.test(h)){s+=35;g.push(['h','Похожие по виду символы в домене','Буквы других алфавитов могут выглядеть как латиница. Классический трюк подделки.'])}
+ if(u.username||raw.includes('@')){s+=30;g.push(['h','В ссылке есть символ @','Всё до @ браузер игнорирует — реальный адрес находится после него.'])}
+ if(SHORT.includes(h)){s+=25;g.push(['m','Сервис коротких ссылок','Конечный адрес скрыт. Разверни ссылку через предпросмотр, прежде чем открывать.'])}
+ if(BADTLD.includes(tld)){s+=22;g.push(['m','Подозрительная доменная зона .'+tld,'Эти зоны дёшевы и часто используются для одноразовых мошеннических сайтов.'])}
+ if(parts.length>4){s+=15;g.push(['m','Слишком много поддоменов','Мошенники прячут настоящий домен в длинной цепочке: главное — последние две части ('+dom+').'])}
+ const hy=(h.match(/-/g)||[]).length;if(hy>=2){s+=12;g.push(['m','Много дефисов в домене','Конструкции вроде «bank-secure-login» типичны для фишинга.'])}
+ for(const b of BRANDS){if(h.includes(b)&&!OFFICIAL[b].some(o=>h===o||h.endsWith('.'+o))){s+=40;g.push(['h','Имитация бренда «'+b+'»','Название встречается в адресе, но домен не официальный. Настоящий: '+OFFICIAL[b][0]+'.']);break}}
+ if(/[a-z][0-9][a-z]|[0-9][a-z]{2,}[0-9]/.test(parts[0])&&/0|1/.test(parts[0])&&BRANDS.some(b=>parts[0].replace(/0/g,'o').replace(/1/g,'l').includes(b))){s+=25;g.push(['h','Цифры вместо букв','Например, 0 вместо o или 1 вместо l — приём подмены.'])}
+ if(KW.test(u.pathname+u.search+h)){s+=12;g.push(['m','Слова-приманки в адресе','login, verify, bonus, gift, claim — частые слова фишинговых ссылок.'])}
+ if(raw.length>100){s+=8;g.push(['m','Очень длинная ссылка','Длинные адреса часто маскируют подмену.'])}
+ if(u.port&&!['80','443'].includes(u.port)){s+=10;g.push(['m','Нестандартный порт :'+u.port,'Обычные сайты работают на стандартных портах.'])}
+ return{s,g:g.sort((a,b)=>'hmg'.indexOf(a[0])-'hmg'.indexOf(b[0]))};
+}
+$('#goL').onclick=()=>{const r=checkLink($('#u').value);if(!r)return;render($('#rL'),r.s,r.g,'Адрес выглядит нормально, но убедись, что он совпадает с официальным.')};
+$('#clrL').onclick=()=>{$('#u').value='';$('#rL').style.display='none'};
+$('#u').addEventListener('keydown',e=>{if(e.key==='Enter')$('#goL').click()});
+
+// ---- MESSAGE ----
+const RULES=[
+ [/код\s*(из|от)?\s*(смс|sms|сообщен)|продикт|назовите код|cvv|cvc|пин[- ]?код|пароль|одноразов/i,40,'Просят код, пароль или данные карты','Настоящий банк и госорганы никогда не просят коды из СМС, CVV и пароли.'],
+ [/безопасн\w*\s+счёт|безопасн\w*\s+счет|защищённ\w*\s+счёт|переведите.*(на|в)\s+(другой|новый|специальн)/i,45,'«Безопасный счёт»','Такого счёта не существует. Это один из самых частых сценариев кражи денег.'],
+ [/служб\w+\s+безопасности|сотрудник\w*\s+(банка|полиции|фсб|следствен)|следовател|центробанк|финмониторинг/i,25,'Представляются службой безопасности или полицией','Проверь сам: положи трубку и позвони в банк по номеру с карты.'],
+ [/срочно|немедленно|прямо сейчас|в течение\s+\d+\s*(мин|час)|последний шанс|иначе.*(заблокир|штраф|уголовн)|будет заблокирован/i,22,'Давление и спешка','Мошенники торопят, чтобы ты не успел подумать и посоветоваться.'],
+ [/никому не говори|не говорите никому|не сообщай|не рассказывай|только между нами|не говори (папе|маме)/i,25,'Просят хранить в секрете','Требование молчать — верный признак манипуляции.'],
+ [/(мам|пап|бабушк|дедушк|сынок|привет)[\s\S]{0,60}(в беде|попал|авари|задержа|больниц)|(в беде|авария|задержали)[\s\S]{0,80}перевед/i,35,'«Родственник в беде»','Позвони этому человеку на его настоящий номер или кому-то из близких.'],
+ [/выигр|приз|подарок|розыгрыш|бонус|компенсац|возврат\s+(средств|налог)|получите\s+\d|выплат/i,25,'Приз, выплата или компенсация','Неожиданные выигрыши и выплаты почти всегда приманка.'],
+ [/гарантир\w+\s+(доход|прибыл)|\d{2,}\s*%\s*(в день|в неделю|за неделю)|инвестиц|крипто|пассивный доход|удвои/i,25,'Обещание лёгкого дохода','Гарантированная высокая прибыль — признак пирамиды или обмана.'],
+ [/предоплат|комисси\w+\s+за\s+(вывод|получ)|оплатите\s+(доставку|страховку|пошлину)/i,25,'Требуют заплатить, чтобы получить деньги','Настоящие выплаты не требуют предоплаты.'],
+ [/установите\s+(приложение|программу)|anydesk|teamviewer|rustdesk|скачайте\s+(apk|файл)/i,35,'Просят установить программу','Удалённый доступ позволяет вывести деньги с твоего телефона.'],
+ [/ваш\w*\s+(аккаунт|карта|счёт|счет|номер)\s+\w*\s*(заблокирован|взломан|приостановлен)|подозрительн\w+\s+(вход|операц|активност)/i,25,'Пугают блокировкой или взломом','Проверь статус только в официальном приложении, не по ссылке.'],
+ [/перевед\w+\s+(на|по)\s+(номер|карт|реквизит)|пополните|на\s+карту\s+\d{4}/i,18,'Просят перевести деньги','Переводы незнакомым людям и «по реквизитам из чата» не возвращаются.']
+];
+function checkMsg(t){
+ t=t.trim();if(!t)return null;let s=0,g=[];
+ RULES.forEach(r=>{if(r[0].test(t)){s+=r[1];g.push([r[1]>=35?'h':'m',r[2],r[3]])}});
+ const links=t.match(/(https?:\/\/|www\.)\S+|\b[\w-]+\.(xyz|top|click|icu|site|online|tk|link)\b\S*/gi)||[];
+ links.slice(0,2).forEach(l=>{const c=checkLink(l);if(c&&c.s>=25){s+=Math.min(30,c.s);g.push(['h','Подозрительная ссылка: '+esc(l.slice(0,50)),'Проверь её во вкладке «Проверить ссылку».'])}else if(c){s+=6;g.push(['m','В сообщении есть ссылка','Не переходи по ссылкам от незнакомых отправителей.'])}});
+ if(/[A-ZА-ЯЁ]{6,}/.test(t)||/!{2,}/.test(t)){s+=8;g.push(['m','Крик и восклицательные знаки','Эмоциональное давление — приём манипуляции.'])}
+ return{s,g:g.sort((a,b)=>'hmg'.indexOf(a[0])-'hmg'.indexOf(b[0]))};
+}
+$('#goM').onclick=()=>{const r=checkMsg($('#m').value);if(!r)return;render($('#rM'),r.s,r.g,'Типичных приёмов мошенников не найдено. Если просят деньги или данные, всё равно проверь отправителя.')};
+$('#clrM').onclick=()=>{$('#m').value='';$('#rM').style.display='none'};
+document.querySelectorAll('[data-ex]').forEach(a=>a.onclick=()=>{$('#u').value=a.dataset.ex;$('#goL').click()});
+document.querySelectorAll('[data-exm]').forEach(a=>a.onclick=()=>{$('#m').value=a.dataset.exm;$('#goM').click()});
+
+// ---- QUIZ ----
+const Q=[
+ ['«Здравствуйте, это служба безопасности банка. Назовите код из СМС, чтобы отменить подозрительный перевод».',1,'Мошенничество. Код из СМС нельзя называть никому, даже «сотруднику банка».'],
+ ['Приложение банка само прислало пуш-уведомление: «Вход с нового устройства. Это были вы?» с кнопками в самом приложении.',0,'Скорее всего это настоящее уведомление. Вся проверка идёт внутри приложения, никто не просит коды.'],
+ ['«Поздравляем! Вы выиграли iPhone. Оплатите доставку 1500 на карту 4400… и заберите приз сегодня».',1,'Мошенничество. Реальные призы не требуют предоплаты за доставку.'],
+ ['Курьер по заказу, который ты сам оформил, пишет: «Буду через 15 минут, выйдите к подъезду».',0,'Безопасно: ты ждал этот заказ, и никто не просит денег или кодов.'],
+ ['Сообщение «от начальника» в мессенджере с новым номером: «Срочно нужны деньги, переведи 30 000 и никому не говори».',1,'Мошенничество. Срочность, секретность и новый номер: перезвони начальнику сам.']
+];
+let qi=0,qs=0;
+function qShow(){
+ const b=$('#qbox');
+ if(qi>=Q.length){const p=qs/Q.length;b.innerHTML=`<h3>Результат: ${qs} из ${Q.length}</h3><p>${p===1?'Отлично, тебя трудно обмануть!':p>=.6?'Неплохо, но стоит повторить приёмы мошенников.':'Есть над чем поработать, пройди тест ещё раз.'}</p><div class="row"><button class="btn" id="again" type="button">Пройти заново</button></div>`;$('#again').onclick=()=>{qi=0;qs=0;qShow()};return}
+ const q=Q[qi];
+ b.innerHTML=`<h3>Вопрос ${qi+1} из ${Q.length}: это мошенничество?</h3><div class="msg">${q[0]}</div><div class="row"><button class="btn" data-a="1" type="button">Мошенничество</button><button class="btn ghost" data-a="0" type="button">Безопасно</button></div><div class="fb" id="fb"></div>`;
+ b.querySelectorAll('[data-a]').forEach(x=>x.onclick=()=>{
+  const ok=+x.dataset.a===q[1];if(ok)qs++;
+  b.querySelectorAll('[data-a]').forEach(y=>y.disabled=true);
+  const f=$('#fb');f.style.display='block';f.style.background=ok?'var(--okbg)':'var(--badbg)';
+  f.innerHTML=`<b>${ok?'Верно!':'Не совсем.'}</b> ${q[2]}<div class="row"><button class="btn" id="nx" type="button">${qi+1<Q.length?'Дальше':'Результат'}</button></div>`;
+  $('#nx').onclick=()=>{qi++;qShow()};$('#nx').focus();
+ });
+}
+qShow();
+</script>
+</body>
+</html>
